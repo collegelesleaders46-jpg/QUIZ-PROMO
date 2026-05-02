@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QUIZ PROMO P8 ABENGOUROU</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>QUIZ PROMO P8 ABENGOUROU</h1>
+      <p>Reviser ensemble, progresser ensemble.</p>
+    </header>
+
+    <main class="container">
+      <section class="card" id="auth-card">
+        <h2>Espace etudiant</h2>
+        <p class="muted">Connexion uniquement avec code d'accès (liste definie dans le code).</p>
+        <label for="login-name">Code d'accès</label>
+        <input id="login-name" type="text" placeholder="Ex: 24A001" />
+        <button id="login-btn">Se connecter</button>
+        <p id="auth-message" class="muted"></p>
+      </section>
+
+      <section class="card hidden" id="subjects-card">
+        <div class="card-nav">
+          <button id="back-subjects-btn" class="nav-btn">← Retour</button>
+        </div>
+        <h2>Choix de la matiere</h2>
+        <p id="session-label" class="muted"></p>
+        <p id="user-name-display" class="user-name-display"></p>
+        <p class="muted">Choisis d'abord le mode QUIZ ou Préparation DE, puis sélectionne la matière et le sujet.</p>
+        <label for="subject-choice">Matiere</label>
+        <select id="subject-choice"></select>
+        <label for="topic-choice">Sujet</label>
+        <select id="topic-choice"></select>
+        <p id="subject-message" class="muted"></p>
+        <p id="selected-question-count" class="muted"></p>
+        <div class="button-group">
+          <button id="begin-quiz-btn" type="button" class="hidden">Commencer</button>
+          <button id="general-quiz-btn" type="button" class="small-btn">QUIZ</button>
+          <button id="preparation-de-btn" type="button" class="small-btn">Préparation DE</button>
+        </div>
+        <button id="logout-btn" class="secondary-btn">Se deconnecter</button>
+      </section>
+
+      <section class="card hidden" id="quiz-card">
+        <div class="card-nav">
+          <span id="quiz-user-name" class="nav-text"></span>
+        </div>
+        <div class="quiz-top">
+          <span id="question-count">Questions: 0</span>
+          <span id="score-live">Score: -</span>
+          <span id="timer-display">Temps restant: 60:00</span>
+        </div>
+        <h2 id="question-text"></h2>
+        <div id="answers" class="answers"></div>
+        <button id="submit-answers-btn">Valider mes reponses</button>
+      </section>
+
+      <section class="card hidden" id="result-card">
+        <div class="card-nav">
+          <button id="home-btn" class="nav-btn">🏠 Accueil</button>
+        </div>
+        <h2>Resultat</h2>
+        <p id="final-message"></p>
+        <div id="review-list" class="hidden"></div>
+        <button id="show-correction-btn">Voir la correction</button>
+        <button id="restart-btn">Rejouer</button>
+      </section>
+
+      <section class="card hidden" id="leaderboard-card">
+        <div class="card-nav">
+          <button id="back-leaderboard-btn" class="nav-btn">← Retour</button>
+        </div>
+        <h2>Classement local</h2>
+        <p class="muted">Sauvegarde dans ce navigateur.</p>
+        <ol id="leaderboard-list"></ol>
+      </section>
+
+      <section class="card hidden" id="student-space-card">
+        <div class="card-nav">
+          <button id="back-space-btn" class="nav-btn">← Retour</button>
+        </div>
+        <h2>Mon espace</h2>
+        <p class="muted">Tes derniers resultats personnels.</p>
+        <ol id="student-history-list"></ol>
+      </section>
+    </main>
+
+    <script src="code.js"></script>
+    <script src="quiz-subjects.js"></script>
+    <script src="preparation-de-subjects.js"></script>
+    <script src="quiz-data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
