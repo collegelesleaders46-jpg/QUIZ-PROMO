@@ -1,13 +1,16 @@
-// Questions santé générées automatiquement.
-// Chaque matière possède 5 sujets, et chaque sujet contient 65 questions.
-// Formats inclus : QCM, QCD, cas clinique, cas pratique, vrai/faux.
-// Le champ answer accepte soit un nombre (réponse unique), soit un tableau (plusieurs réponses).
+// Questions santé corrigées.
+// Chaque matière possède 5 sujets différents.
+// Les questions sont générées selon la matière ET selon le sujet choisi.
 
 function normalizeText(value) {
-  return (value || "")
+  return String(value || "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+function q(question, options, answer, explanation) {
+  return { question, options, answer, explanation };
 }
 
 function getSubjectProfile(subjectName) {
@@ -16,26 +19,22 @@ function getSubjectProfile(subjectName) {
   if (s.includes("imagerie")) {
     return {
       domaine: "imagerie médicale",
-      cible: "patient devant bénéficier d’un examen d’imagerie",
-      signe: "douleur, suspicion de lésion ou besoin de confirmation diagnostique",
-      risque: "irradiation inutile ou erreur d’identification",
-      action: "vérifier l’identité, la prescription et préparer le patient",
-      urgence: "allergie au produit de contraste, grossesse ou détresse respiratoire",
-      outil: "radiographie, échographie, scanner ou IRM selon l’indication",
-      education: "expliquer l’examen, rassurer le patient et retirer les objets métalliques si nécessaire",
+      cible: "patient orienté pour examen d’imagerie",
+      role: "préparer le patient, vérifier la prescription et surveiller les incidents",
+      risque: "erreur d’identification, exposition inutile ou réaction au produit de contraste",
+      urgence: "dyspnée, malaise, allergie ou grossesse non signalée",
+      outil: "prescription, fiche d’examen, matériel de protection et dossier patient",
     };
   }
 
-  if (s.includes("vaccination") || s.includes("injection") || s.includes("hygiene") || s.includes("bios")) {
+  if (s.includes("vaccination") || s.includes("injection")) {
     return {
-      domaine: "hygiène hospitalière et sécurité des soins",
-      cible: "patient exposé à un soin invasif ou à une vaccination",
-      signe: "risque infectieux, matériel souillé ou rupture d’asepsie",
-      risque: "infection associée aux soins ou accident d’exposition au sang",
-      action: "respecter l’hygiène des mains, l’asepsie et l’élimination sécurisée des déchets",
-      urgence: "piqûre accidentelle, réaction allergique grave ou contamination massive",
-      outil: "solution hydroalcoolique, gants, boîte de sécurité et matériel stérile",
-      education: "sensibiliser sur le lavage des mains et le respect des mesures barrières",
+      domaine: "vaccination et sécurité des injections",
+      cible: "enfant, adolescent ou adulte à vacciner",
+      role: "préparer la séance, conserver les vaccins et éliminer les déchets piquants",
+      risque: "rupture de chaîne du froid, MAPI ou accident d’exposition au sang",
+      urgence: "réaction anaphylactique ou malaise après injection",
+      outil: "carnet de vaccination, glacière, seringue autobloquante et boîte de sécurité",
     };
   }
 
@@ -43,235 +42,218 @@ function getSubjectProfile(subjectName) {
     return {
       domaine: "pédiatrie et PCIMNE",
       cible: "nourrisson ou enfant malade",
-      signe: "fièvre, diarrhée, toux, refus de téter ou altération de l’état général",
-      risque: "déshydratation, convulsion, malnutrition ou détresse respiratoire",
-      action: "évaluer les signes de danger, surveiller les constantes et référer si nécessaire",
-      urgence: "convulsion, léthargie, incapacité de boire ou respiration difficile",
-      outil: "courbe de croissance, SRO, thermomètre et fiche PCIMNE",
-      education: "conseiller l’allaitement, l’hygiène, la vaccination et la consultation précoce",
+      role: "rechercher les signes de danger, classer la maladie et conseiller la mère",
+      risque: "déshydratation, détresse respiratoire, convulsion ou malnutrition",
+      urgence: "incapacité de boire, léthargie, convulsions ou tirage sévère",
+      outil: "fiche PCIMNE, thermomètre, SRO, balance et courbe de croissance",
     };
   }
 
-  if (
-    s.includes("gyne") || s.includes("obst") || s.includes("sonu") || s.includes("postnat") ||
-    s.includes("ventouse") || s.includes("amiu") || s.includes("avortement") ||
-    s.includes("sexuelle") || s.includes("familiale") || s.includes("ist") || s.includes("vih")
-  ) {
+  if (s.includes("gyne") || s.includes("obst") || s.includes("sonu") || s.includes("postnat") || s.includes("ventouse") || s.includes("amiu") || s.includes("sexuelle") || s.includes("familiale") || s.includes("vih")) {
     return {
-      domaine: "gynécologie, obstétrique et santé de reproduction",
+      domaine: "gynécologie, obstétrique et santé reproductive",
       cible: "femme enceinte, accouchée ou patiente en santé reproductive",
-      signe: "saignement, douleur pelvienne, aménorrhée, fièvre ou tension élevée",
-      risque: "hémorragie, pré-éclampsie, infection, avortement compliqué ou souffrance fœtale",
-      action: "évaluer l’état maternel, surveiller les constantes et organiser la référence",
-      urgence: "hémorragie, convulsion, fièvre élevée, douleur intense ou travail compliqué",
-      outil: "partogramme, tensiomètre, test urinaire, carnet de CPN et matériel d’accouchement",
-      education: "conseiller la CPN, la planification familiale, les signes de danger et l’observance",
+      role: "surveiller la mère, le fœtus ou le nouveau-né et organiser la référence",
+      risque: "hémorragie, infection, pré-éclampsie, avortement compliqué ou souffrance fœtale",
+      urgence: "saignement abondant, convulsion, fièvre élevée ou douleur intense",
+      outil: "partogramme, tensiomètre, carnet CPN, kit d’accouchement et registre",
     };
   }
 
   if (s.includes("chirurgie") || s.includes("neurochirurgie")) {
     return {
-      domaine: "soins infirmiers spécialisés en chirurgie",
+      domaine: "soins chirurgicaux",
       cible: "patient en préopératoire ou postopératoire",
-      signe: "douleur, plaie, fièvre, saignement ou diminution de la mobilité",
-      risque: "infection du site opératoire, hémorragie, choc ou complication anesthésique",
-      action: "surveiller la plaie, la douleur, les constantes et l’état de conscience",
-      urgence: "saignement abondant, détresse respiratoire ou chute brutale de la tension",
-      outil: "pansement stérile, fiche de surveillance, antalgiques prescrits et matériel d’asepsie",
-      education: "expliquer les soins de plaie, l’hygiène et les signes d’alerte postopératoires",
+      role: "préparer l’intervention, surveiller les constantes, la douleur et la plaie",
+      risque: "hémorragie, infection du site opératoire, choc ou complication anesthésique",
+      urgence: "saignement abondant, détresse respiratoire ou trouble de conscience",
+      outil: "dossier opératoire, pansement stérile, fiche de surveillance et antalgiques prescrits",
     };
   }
 
-  if (
-    s.includes("cardiologie") || s.includes("endocrinologie") || s.includes("oncologie") ||
-    s.includes("nephrologie") || s.includes("hepato") || s.includes("dermatologie") ||
-    s.includes("geriatrie") || s.includes("psychiatrie") || s.includes("neuropsychiatrie") ||
-    s.includes("orL".toLowerCase()) || s.includes("ophtalmologie") || s.includes("odonto")
-  ) {
-    return {
-      domaine: "soins infirmiers spécialisés en médecine",
-      cible: "patient suivi pour une pathologie médicale",
-      signe: "douleur, fièvre, fatigue, dyspnée ou déséquilibre des constantes",
-      risque: "décompensation, complication aiguë, mauvaise observance ou aggravation",
-      action: "surveiller les constantes, appliquer la prescription et éduquer le patient",
-      urgence: "douleur thoracique, dyspnée sévère, trouble de conscience ou choc",
-      outil: "tensiomètre, thermomètre, glucomètre, fiche de surveillance et dossier patient",
-      education: "expliquer le traitement, les rendez-vous, l’alimentation et les signes d’alerte",
-    };
+  if (s.includes("cardiologie")) {
+    return { domaine: "cardiologie", cible: "patient cardio-vasculaire", role: "surveiller la tension, le pouls, la dyspnée et l’observance", risque: "AVC, insuffisance cardiaque, choc ou complication hypertensive", urgence: "douleur thoracique, dyspnée sévère ou TA très élevée", outil: "tensiomètre, stéthoscope, fiche de surveillance et traitement prescrit" };
+  }
+  if (s.includes("endocrinologie")) {
+    return { domaine: "endocrinologie", cible: "patient diabétique ou thyroïdien", role: "surveiller la glycémie, les signes cliniques et éduquer le patient", risque: "hypoglycémie, hyperglycémie, coma ou complication thyroïdienne", urgence: "sueurs, tremblements, confusion, coma ou dyspnée compressive", outil: "glucomètre, bandelettes, carnet de suivi et traitement prescrit" };
+  }
+  if (s.includes("nephrologie")) {
+    return { domaine: "néphrologie", cible: "patient atteint d’affection rénale", role: "surveiller la diurèse, les œdèmes, la TA et les bilans", risque: "insuffisance rénale, surcharge hydrique ou trouble électrolytique", urgence: "anurie, dyspnée, œdèmes massifs ou trouble de conscience", outil: "bocal de diurèse, balance, tensiomètre et feuille d’entrée-sortie" };
+  }
+  if (s.includes("psychiatrie") || s.includes("neuropsychiatrie")) {
+    return { domaine: "psychiatrie", cible: "patient présentant un trouble psychique", role: "écouter, sécuriser, surveiller le comportement et favoriser l’observance", risque: "agitation, fugue, automutilation, violence ou rupture thérapeutique", urgence: "agitation extrême, idées suicidaires ou confusion aiguë", outil: "entretien infirmier, grille d’observation, traitement prescrit et protocole d’urgence" };
+  }
+  if (s.includes("dermatologie")) {
+    return { domaine: "dermatologie", cible: "patient présentant une lésion cutanée", role: "observer la peau, prévenir l’infection et réaliser les soins locaux", risque: "surinfection, escarre, brûlure compliquée ou douleur", urgence: "brûlure étendue, nécrose ou infection sévère", outil: "gants, antiseptique, pansement stérile et fiche de plaie" };
   }
 
-  if (
-    s.includes("droit") || s.includes("responsabilite") || s.includes("securite sociale") ||
-    s.includes("fonction publique") || s.includes("redaction administrative") ||
-    s.includes("gestion hospitaliere") || s.includes("entrepreneuriat") ||
-    s.includes("supervision") || s.includes("gouvernance") || s.includes("documents normatifs")
-  ) {
+  if (s.includes("droit") || s.includes("fonction publique") || s.includes("redaction") || s.includes("gestion hospitaliere") || s.includes("entrepreneuriat") || s.includes("supervision") || s.includes("gouvernance") || s.includes("documents normatifs") || s.includes("securite sociale")) {
     return {
       domaine: "administration, gestion et responsabilité professionnelle",
-      cible: "service de santé, équipe soignante ou usager",
-      signe: "besoin d’organisation, traçabilité, conformité ou amélioration de la qualité",
-      risque: "faute professionnelle, mauvaise coordination, absence de preuve ou conflit",
-      action: "respecter les procédures, documenter les actes et communiquer clairement",
-      urgence: "incident grave, plainte, rupture de service ou problème de sécurité du patient",
-      outil: "registre, rapport, note administrative, protocole et indicateurs de suivi",
-      education: "rappeler les droits, devoirs, responsabilités et règles de communication",
+      cible: "service, usager ou équipe de santé",
+      role: "organiser le travail, respecter les textes, tracer les activités et communiquer clairement",
+      risque: "faute professionnelle, conflit, mauvaise coordination ou absence de preuve",
+      urgence: "incident grave, plainte, rupture de service ou problème de sécurité",
+      outil: "registre, rapport, note administrative, protocole et indicateurs",
     };
   }
 
-  if (s.includes("memoire") || s.includes("document final") || s.includes("projet de soins")) {
+  if (s.includes("memoire") || s.includes("projet de soins") || s.includes("stage") || s.includes("cas cliniques")) {
     return {
-      domaine: "méthodologie, mémoire et projet de soins infirmiers",
-      cible: "étudiant ou équipe réalisant une étude ou un projet de soins",
-      signe: "problème de soins, besoin de recherche ou situation à améliorer",
-      risque: "objectif flou, données mal recueillies, biais ou projet non évalué",
-      action: "définir le problème, fixer les objectifs, collecter les données et évaluer les résultats",
-      urgence: "erreur méthodologique majeure ou non-respect de l’éthique",
-      outil: "questionnaire, grille d’observation, plan de rédaction et indicateurs d’évaluation",
-      education: "expliquer la méthode, la confidentialité et l’importance des données fiables",
-    };
-  }
-
-  if (s.includes("stage")) {
-    return {
-      domaine: "stage clinique et communautaire",
-      cible: "stagiaire en situation de soins",
-      signe: "besoin d’apprentissage, d’encadrement ou de rapport de stage",
-      risque: "geste non maîtrisé, défaut de supervision ou erreur de transmission",
-      action: "respecter le champ de compétence, demander supervision et tracer les soins",
-      urgence: "situation dépassant les compétences du stagiaire ou risque pour le patient",
-      outil: "carnet de stage, objectifs, fiche de soins, rapport et grille d’évaluation",
-      education: "développer l’esprit professionnel, l’éthique et la communication avec l’équipe",
+      domaine: "méthodologie, stage et projet de soins",
+      cible: "étudiant, patient ou communauté étudiée",
+      role: "collecter des données, analyser le problème, planifier les actions et évaluer",
+      risque: "objectif flou, biais, données incomplètes ou non-respect de l’éthique",
+      urgence: "erreur méthodologique majeure ou situation dépassant les compétences",
+      outil: "questionnaire, grille d’observation, plan de soins, rapport et indicateurs",
     };
   }
 
   return {
     domaine: "santé publique et soins infirmiers",
     cible: "patient, famille ou communauté",
-    signe: "problème de santé, besoin de prévention ou demande de soins",
-    risque: "complication, transmission de maladie ou retard de prise en charge",
-    action: "évaluer la situation, prioriser les soins et référer si nécessaire",
+    role: "évaluer la situation, prioriser les soins, éduquer et référer si nécessaire",
+    risque: "complication, retard de prise en charge ou mauvaise observance",
     urgence: "détresse vitale, altération de l’état général ou signe de danger",
-    outil: "fiche de surveillance, protocole, matériel de soins et registre",
-    education: "sensibiliser sur la prévention, l’hygiène et le recours précoce aux soins",
+    outil: "fiche de surveillance, protocole, registre et matériel de soins",
   };
 }
 
-function q(question, options, answer, explanation) {
-  return { question, options, answer, explanation };
-}
+function getTopicProfile(topicName, subjectName) {
+  const t = normalizeText(topicName);
+  const s = normalizeText(subjectName);
 
-function q(question, options, answer, explanation) {
-  return { question, options, answer, explanation };
+  const rules = [
+    ["radiographie", ["Radiographie conventionnelle", "vérifier la prescription, protéger le patient et retirer les objets gênants", "grossesse non signalée ou erreur de zone à explorer", "tablier plombé et bon d’examen"]],
+    ["echographie", ["Échographie", "installer le patient et expliquer que l’examen utilise les ultrasons", "mauvaise préparation ou vessie insuffisamment remplie selon l’examen", "gel, sonde et fiche de rendez-vous"]],
+    ["scanner", ["Scanner et produit de contraste", "rechercher une allergie, vérifier la créatinine et surveiller après injection", "allergie au produit de contraste ou extravasation", "voie veineuse, produit de contraste et chariot d’urgence"]],
+    ["irm", ["IRM et sécurité", "retirer tout objet métallique et vérifier les implants", "accident lié au métal ou claustrophobie", "questionnaire IRM et consignes de sécurité"]],
+    ["chaine du froid", ["Chaîne du froid", "conserver les vaccins entre les températures recommandées et contrôler la pastille", "vaccin inefficace par rupture de chaîne du froid", "glacière, accumulateurs et thermomètre"]],
+    ["mapi", ["Gestion des MAPI", "identifier, traiter rapidement et notifier toute manifestation post-vaccinale", "réaction allergique grave ou panique collective", "fiche de notification MAPI et adrénaline"]],
+    ["signes generaux", ["Signes généraux de danger", "rechercher les signes de danger avant toute classification PCIMNE", "référence tardive d’un enfant grave", "fiche PCIMNE"]],
+    ["diarrhee", ["Diarrhée et déshydratation", "évaluer les signes de déshydratation et administrer le SRO", "déshydratation sévère ou choc", "SRO, zinc et plan de réhydratation"]],
+    ["paludisme", ["Fièvre et paludisme chez l’enfant", "rechercher la fièvre, faire le test si indiqué et traiter selon protocole", "convulsion ou paludisme grave", "TDR, thermomètre et antipaludique prescrit"]],
+    ["hypertension", ["Hypertension artérielle", "mesurer correctement la TA et rechercher les signes de gravité", "AVC ou complication hypertensive", "tensiomètre et carnet de suivi"]],
+    ["diabete", ["Diabète sucré", "contrôler la glycémie et reconnaître hypo/hyperglycémie", "coma hypoglycémique ou hyperglycémique", "glucomètre et sucre rapide"]],
+    ["goitre", ["Goitre et pathologies thyroïdiennes", "observer le cou, rechercher les signes compressifs et orienter", "dyspnée compressive ou trouble hormonal", "palpation cervicale et bilan prescrit"]],
+    ["hemorragie", ["Hémorragies obstétricales", "évaluer le saignement, masser l’utérus si indiqué et alerter", "choc hémorragique", "utérotonique prescrit, voie veineuse et fiche de surveillance"]],
+    ["pre-eclampsie", ["Pré-éclampsie et éclampsie", "mesurer la TA, rechercher céphalées, œdèmes et protéinurie", "convulsion ou AVC maternel", "tensiomètre, bandelette urinaire et sulfate de magnésium prescrit"]],
+    ["partogramme", ["Surveillance du travail", "suivre la dilatation, les contractions et le rythme cardiaque fœtal", "travail prolongé ou souffrance fœtale", "partogramme et doppler/pinard"]],
+    ["postoperatoire", ["Surveillance postopératoire", "surveiller conscience, douleur, plaie, constantes et diurèse", "hémorragie ou détresse respiratoire", "fiche postopératoire et pansement"]],
+    ["pansements", ["Pansements et plaies", "respecter l’asepsie et observer l’évolution de la plaie", "infection du site opératoire", "set de pansement stérile"]],
+    ["memoire", ["Mémoire", "formuler une problématique, choisir une méthode et présenter les résultats", "biais, plagiat ou objectifs imprécis", "questionnaire, grille d’analyse et plan de mémoire"]],
+    ["diagnostic communautaire", ["Diagnostic communautaire", "collecter les données avec la communauté et prioriser les problèmes", "action non adaptée aux besoins réels", "questionnaire, entretien et carte communautaire"]],
+    ["rapport", ["Rapport", "présenter clairement activités, résultats, difficultés et recommandations", "rapport incomplet ou non justifié", "plan de rapport et données collectées"]],
+  ];
+
+  for (const [keyword, data] of rules) {
+    if (t.includes(keyword)) {
+      return { axe: data[0], action: data[1], danger: data[2], outil: data[3] };
+    }
+  }
+
+  return {
+    axe: topicName || subjectName,
+    action: `appliquer les principes spécifiques du thème « ${topicName} »`,
+    danger: "erreur de prise en charge ou retard d’orientation",
+    outil: "protocole du service, fiche de surveillance et registre",
+  };
 }
 
 function buildQuestionSet(subjectName, topicName) {
   const p = getSubjectProfile(subjectName);
+  const tp = getTopicProfile(topicName, subjectName);
   const label = `${subjectName} — ${topicName}`;
   const questions = [];
 
-  const qcmStems = [
-    ["les objectifs prioritaires", ["Prévenir les complications", "Négliger la traçabilité", "Assurer une prise en charge correcte", "Retarder la référence"], [0, 2], "Les objectifs prioritaires sont la prévention et la qualité de la prise en charge."],
-    ["les éléments de surveillance", ["Constantes vitales", "État général", "Couleur préférée du patient", "Signes de danger"], [0, 1, 3], "La surveillance repose sur les constantes, l’état général et les signes de danger."],
-    ["les signes d’alerte", [p.signe, p.urgence, "Absence totale de plainte", "Aggravation brutale"], [0, 1, 3], "Un signe d’alerte impose une évaluation rapide."],
-    ["les mesures de sécurité", ["Identifier le patient", "Respecter l’asepsie", "Oublier la prescription", "Tracer l’acte réalisé"], [0, 1, 3], "La sécurité associe identification, asepsie et traçabilité."],
-    ["les risques principaux", [p.risque, "Erreur de transmission", "Absence d’éducation", "Repos uniquement"], [0, 1, 2], "Ces risques peuvent aggraver l’état du patient ou la qualité des soins."],
-    ["les actions infirmières adaptées", [p.action, "Surveiller l’évolution", "Informer selon le besoin", "Ignorer les plaintes"], [0, 1, 2], "L’infirmier agit par évaluation, surveillance, information et orientation."],
-    ["les outils utiles", [p.outil, "Dossier patient", "Protocole du service", "Objet personnel sans lien"], [0, 1, 2], "Les outils professionnels facilitent la qualité et la continuité des soins."],
-    ["les éléments d’éducation sanitaire", [p.education, "Expliquer les signes d’alerte", "Encourager l’automédication dangereuse", "Favoriser l’observance"], [0, 1, 3], "L’éducation doit être claire, préventive et sécurisante."],
-    ["les principes de communication", ["Écouter activement", "Utiliser un langage simple", "Humilier le patient", "Vérifier la compréhension"], [0, 1, 3], "La communication respecte le patient et confirme la compréhension."],
-    ["les règles de traçabilité", ["Noter les actes", "Signer les transmissions", "Modifier les données sans raison", "Mentionner les anomalies"], [0, 1, 3], "La traçabilité doit être fidèle, datée et utile."],
-    ["les précautions avant un soin", ["Préparer le matériel", "Informer le patient", "Vérifier la prescription", "Commencer sans hygiène des mains"], [0, 1, 2], "La préparation évite les erreurs et les infections."],
-    ["les critères de référence", [p.urgence, "Aggravation malgré les soins", "Signe de danger", "Simple demande non urgente uniquement"], [0, 1, 2], "La référence est indiquée devant un danger ou une aggravation."],
-    ["les facteurs de qualité", ["Respect des protocoles", "Travail en équipe", "Évaluation des résultats", "Improvisation permanente"], [0, 1, 2], "La qualité dépend de règles suivies et d’une évaluation régulière."],
-    ["les erreurs à éviter", ["Oublier la surveillance", "Administrer sans prescription", "Communiquer les anomalies", "Négliger l’identification"], [0, 1, 3], "Ces erreurs exposent le patient à des complications."],
-    ["les responsabilités professionnelles", ["Respecter le secret professionnel", "Agir dans ses compétences", "Tracer les soins", "Diffuser les informations privées"], [0, 1, 2], "Le secret, la compétence et la traçabilité font partie de la responsabilité."],
+  const uniqueAngles = [
+    ["définition", `Dans le thème « ${tp.axe} », quel élément correspond le mieux à l’objectif principal ?`,
+      [`Assurer ${tp.action}`, "Remplacer le diagnostic médical sans compétence", "Ignorer les signes de danger", "Faire un soin sans traçabilité"], 0,
+      `L’objectif est de sécuriser la prise en charge autour de ${tp.axe}.`],
+    ["rôle infirmier", `Quel est le rôle infirmier prioritaire dans « ${tp.axe} » ?`,
+      [tp.action, "Attendre sans surveiller", "Modifier seul la prescription", "Refuser d’informer le patient"], 0,
+      `Le rôle infirmier est centré sur l’évaluation, la surveillance, l’information et la sécurité.`],
+    ["risque", `Quel risque doit être particulièrement évité dans « ${tp.axe} » ?`,
+      [tp.danger, "Amélioration spontanée certaine", "Absence totale de complication", "Diminution systématique du besoin de surveillance"], 0,
+      `Ce risque impose une surveillance adaptée.`],
+    ["outil", `Quel outil est le plus utile pour ce sujet ?`,
+      [tp.outil, "Un objet personnel sans lien", "Une information non vérifiée", "Une transmission orale non tracée"], 0,
+      `L’outil adapté facilite la qualité et la continuité des soins.`],
+    ["signe d’urgence", `Quel signe impose une réaction rapide dans ce contexte ?`,
+      [p.urgence, "Patient stable sans plainte", "Demande administrative simple", "Résultat normal sans symptôme"], 0,
+      `Un signe d’urgence nécessite alerte, surveillance et orientation rapide.`],
   ];
 
-  qcmStems.forEach((item, index) => {
+  uniqueAngles.forEach((item, index) => {
     questions.push(q(
-      `QCM ${index + 1} (${label}) : Dans le cadre de ${p.domaine}, quels sont ${item[0]} ?`,
-      item[1],
+      `QCD ${index + 1} (${label}) : ${item[1]}`,
       item[2],
-      item[3]
+      item[3],
+      item[4]
     ));
   });
 
-  const qcdStems = [
-    ["Quel est le premier réflexe devant une situation inhabituelle ?", ["Évaluer rapidement la situation", "Quitter le poste", "Attendre sans surveiller", "Donner un traitement au hasard"], 0, "La première étape est toujours l’évaluation."],
-    ["Quel document permet de garder une preuve des soins ?", ["Le dossier ou registre de soins", "Une note non signée", "Un message oral seulement", "Une photo personnelle"], 0, "La preuve professionnelle repose sur la traçabilité écrite."],
-    ["Quelle attitude protège le mieux le patient ?", ["Respecter les protocoles", "Improviser", "Cacher les erreurs", "Éviter les transmissions"], 0, "Les protocoles sécurisent les soins."],
-    ["Quelle action est prioritaire devant un signe de danger ?", ["Alerter ou référer selon le protocole", "Rassurer seulement", "Reporter la surveillance", "Ignorer le signe"], 0, "Le signe de danger impose une réaction rapide."],
-    ["Quel élément doit être vérifié avant un acte ?", ["L’identité du patient", "La météo", "La couleur du mur", "Le nom d’un voisin"], 0, "L’identification évite les erreurs de patient."],
-    ["Quel comportement respecte l’éthique ?", ["Préserver la confidentialité", "Divulguer le diagnostic", "Se moquer du patient", "Refuser toute explication"], 0, "La confidentialité est une obligation."],
-    ["Quelle donnée est une constante vitale ?", ["La tension artérielle", "Le niveau d’étude", "La profession du voisin", "La marque du téléphone"], 0, "La tension artérielle fait partie des constantes surveillées."],
-    ["Quelle mesure réduit le risque infectieux ?", ["Hygiène des mains", "Réutilisation du matériel souillé", "Absence de nettoyage", "Non-port des gants quand ils sont indiqués"], 0, "L’hygiène des mains est essentielle."],
-    ["Quelle action favorise l’observance ?", ["Expliquer clairement le traitement", "Donner des informations contradictoires", "Menacer le patient", "Ne rien expliquer"], 0, "L’explication claire aide le patient à suivre les consignes."],
-    ["Quel élément montre une aggravation ?", ["Altération de l’état général", "Amélioration de l’appétit", "Disparition de la douleur", "Constantes normales"], 0, "L’altération de l’état général est un signe d’alerte."],
-    ["Quelle attitude convient au stagiaire ?", ["Demander supervision en cas de doute", "Faire seul un acte non maîtrisé", "Cacher une erreur", "Signer à la place d’un autre"], 0, "Le stagiaire doit respecter ses limites."],
-    ["Quelle action améliore la continuité des soins ?", ["Faire des transmissions claires", "Garder les informations pour soi", "Effacer les notes", "Changer la prescription"], 0, "Les transmissions assurent la continuité."],
-    ["Quel principe guide la priorisation ?", ["Traiter d’abord l’urgence", "Suivre l’ordre d’arrivée uniquement", "Choisir au hasard", "Attendre la fin du service"], 0, "La gravité détermine la priorité."],
-    ["Quel signe justifie une surveillance rapprochée ?", [p.signe, "Patient stable sans plainte", "Demande administrative simple", "Résultat normal"], 0, "Le signe clinique impose une surveillance."],
-    ["Quel est le bon moyen d’éduquer le patient ?", ["Utiliser des mots simples", "Employer uniquement des termes complexes", "Refuser les questions", "Parler sans vérifier la compréhension"], 0, "Le langage simple facilite la compréhension."],
+  const qcmItems = [
+    [`Quels éléments sont importants pour bien gérer « ${tp.axe} » ?`,
+      [tp.action, "Surveiller l’évolution", "Tracer les actes réalisés", "Cacher les anomalies"], [0,1,2],
+      "Une bonne prise en charge associe action adaptée, surveillance et traçabilité."],
+    [`Quelles mesures renforcent la sécurité du patient dans ce sujet ?`,
+      ["Identifier le patient", "Respecter le protocole", "Informer clairement", "Improviser sans vérifier"], [0,1,2],
+      "La sécurité repose sur l’identification, le protocole et l’information."],
+    [`Quels éléments doivent être transmis à l’équipe ?`,
+      ["Signes observés", "Constantes ou données utiles", "Actions réalisées", "Rumeurs non vérifiées"], [0,1,2],
+      "Les transmissions doivent être utiles, exactes et professionnelles."],
+    [`Quelles erreurs faut-il éviter dans « ${tp.axe} » ?`,
+      ["Oublier la surveillance", "Négliger la traçabilité", "Ignorer le danger", "Respecter le protocole"], [0,1,2],
+      "Ces erreurs peuvent aggraver l’état du patient ou la qualité du service."],
+    [`Quels principes d’éducation sont adaptés ?`,
+      ["Utiliser des mots simples", "Vérifier la compréhension", "Donner les signes d’alerte", "Encourager l’automédication dangereuse"], [0,1,2],
+      "L’éducation doit être claire, préventive et adaptée."],
   ];
+  qcmItems.forEach((item, index) => questions.push(q(`QCM ${index + 6} (${label}) : ${item[0]}`, item[1], item[2], item[3])));
 
-  qcdStems.forEach((item, index) => {
-    questions.push(q(
-      `QCD ${index + 16} (${label}) : ${item[0]}`,
-      item[1],
-      item[2],
-      item[3]
-    ));
-  });
-
-  const clinicalCases = [
-    [`Cas clinique ${31} (${label}) : Un ${p.cible} présente ${p.signe}. Quelle est la conduite initiale ?`, ["Évaluer les constantes et rechercher les signes de danger", "Attendre sans examen", "Administrer un médicament non prescrit", "Le renvoyer sans conseil"], 0, "L’évaluation clinique oriente la prise en charge."],
-    [`Cas clinique ${32} (${label}) : La situation évoque ${p.risque}. Quelle complication faut-il prévenir ?`, [p.risque, "Un simple inconfort sans conséquence", "Une amélioration spontanée certaine", "Une absence de risque"], 0, "Le risque principal doit être identifié tôt."],
-    [`Cas clinique ${33} (${label}) : Après un soin, le patient se plaint d’une aggravation brutale. Que faire ?`, ["Alerter, surveiller et préparer la référence si nécessaire", "Cacher l’information", "Laisser le patient seul", "Arrêter toute surveillance"], 0, "L’aggravation impose une alerte et une surveillance."],
-    [`Cas clinique ${34} (${label}) : Le dossier ne comporte pas les constantes récentes. Quelle action est correcte ?`, ["Reprendre les constantes et les noter", "Inventer des chiffres", "Laisser vide définitivement", "Effacer l’observation"], 0, "Les données doivent être réelles, récentes et tracées."],
-    [`Cas clinique ${35} (${label}) : Le patient ne comprend pas les consignes. Quelle réponse est adaptée ?`, ["Réexpliquer simplement et vérifier la compréhension", "Le blâmer", "Parler plus vite", "Ne plus répondre"], 0, "L’éducation doit être adaptée au niveau de compréhension."],
-    [`Cas clinique ${36} (${label}) : Un signe de danger apparaît : ${p.urgence}. Quelle décision est prioritaire ?`, ["Organiser une prise en charge urgente", "Reporter au lendemain", "Donner seulement de l’eau", "Ignorer car le patient parle encore"], 0, "Un signe de danger nécessite une action urgente."],
-    [`Cas clinique ${37} (${label}) : Le matériel utile n’est pas prêt. Que doit faire l’infirmier ?`, ["Préparer le matériel avant le soin", "Commencer malgré tout", "Utiliser du matériel inconnu", "Demander au patient de chercher le matériel"], 0, "La préparation du matériel sécurise le soin."],
-    [`Cas clinique ${38} (${label}) : Une erreur de transmission est constatée. Quelle conduite tenir ?`, ["Corriger officiellement et informer l’équipe", "Cacher l’erreur", "Accuser le patient", "Supprimer tout le dossier"], 0, "La correction doit être transparente et tracée."],
-    [`Cas clinique ${39} (${label}) : Le patient refuse un soin par peur. Quelle attitude adopter ?`, ["Écouter, expliquer et respecter la décision selon les règles", "Forcer immédiatement", "Se moquer de lui", "Ne rien expliquer"], 0, "Le consentement et l’information sont essentiels."],
-    [`Cas clinique ${40} (${label}) : Une famille demande des conseils de prévention. Que répondre ?`, [p.education, "Conseiller l’automédication systématique", "Dire qu’aucune prévention n’existe", "Éviter toute explication"], 0, "La prévention repose sur des conseils adaptés."],
+  const cases = [
+    [`Cas clinique (${label}) : Un ${p.cible} est reçu pour « ${tp.axe} ». Quelle conduite initiale est correcte ?`,
+      [`Évaluer la situation puis ${tp.action}`, "Le renvoyer sans conseil", "Administrer un traitement au hasard", "Ignorer la demande"], 0,
+      "La conduite initiale doit commencer par une évaluation professionnelle."],
+    [`Cas clinique (${label}) : Pendant la prise en charge, tu suspectes ${tp.danger}. Que faire ?`,
+      ["Alerter, surveiller et appliquer le protocole", "Cacher l’information", "Attendre plusieurs jours", "Effacer les données"], 0,
+      "Un risque identifié doit être signalé et pris en charge rapidement."],
+    [`Cas pratique (${label}) : Tu dois organiser une activité sur « ${tp.axe} ». Quelle première étape est correcte ?`,
+      ["Identifier les besoins et préparer le matériel", "Commencer sans plan", "Éviter l’équipe", "Ne pas évaluer"], 0,
+      "Toute activité commence par l’identification du besoin et la préparation."],
+    [`Cas pratique (${label}) : Une famille demande des conseils. Quelle réponse est la plus adaptée ?`,
+      [`Expliquer simplement ${tp.action} et les signes d’alerte`, "Refuser toute explication", "Donner des informations contradictoires", "Conseiller d’éviter la consultation"], 0,
+      "Le conseil doit être simple, utile et orienté vers la prévention."],
+    [`Cas pratique (${label}) : Quel document ou matériel faut-il prévoir ?`,
+      [tp.outil, "Matériel souillé", "Document sans lien", "Aucun support de traçabilité"], 0,
+      "Le matériel ou document adapté améliore la qualité du soin."],
   ];
+  cases.forEach((item) => questions.push(q(item[0], item[1], item[2], item[3])));
 
-  clinicalCases.forEach((item) => questions.push(q(item[0], item[1], item[2], item[3])));
-
-  const practicalCases = [
-    [`Cas pratique ${41} (${label}) : Tu dois organiser une activité liée à ${p.domaine}. Quelle étape vient d’abord ?`, ["Identifier le problème et fixer les objectifs", "Commencer sans plan", "Éviter l’équipe", "Ne pas évaluer"], 0, "Toute activité commence par l’identification du besoin."],
-    [`Cas pratique ${42} (${label}) : Tu accueilles ${p.cible}. Quelle action améliore la qualité ?`, ["Accueil, identification et explication du soin", "Accueil brusque", "Aucune présentation", "Absence d’écoute"], 0, "Un bon accueil favorise la confiance."],
-    [`Cas pratique ${43} (${label}) : Tu observes ${p.signe}. Quelle information dois-tu transmettre ?`, ["Les signes observés, les constantes et les actions faites", "Seulement ton opinion", "Rien si le service est chargé", "Des informations inventées"], 0, "La transmission doit être précise et utile."],
-    [`Cas pratique ${44} (${label}) : Tu dois prévenir ${p.risque}. Quelle stratégie est correcte ?`, [p.action, "Supprimer la surveillance", "Refuser l’éducation", "Changer seul la prescription"], 0, "La prévention passe par des actions professionnelles adaptées."],
-    [`Cas pratique ${45} (${label}) : Tu prépares le matériel. Quel élément est indispensable ?`, [p.outil, "Matériel souillé", "Matériel périmé", "Matériel non identifié"], 0, "Le matériel doit être adapté et sécurisé."],
-    [`Cas pratique ${46} (${label}) : Une situation dépasse tes compétences. Que faire ?`, ["Alerter le responsable et référer", "Faire semblant de maîtriser", "Cacher le problème", "Abandonner le patient"], 0, "Il faut reconnaître ses limites professionnelles."],
-    [`Cas pratique ${47} (${label}) : Tu dois faire une sensibilisation. Quel message est pertinent ?`, [p.education, "Éviter la consultation", "Arrêter les traitements sans avis", "Ignorer les signes d’alerte"], 0, "La sensibilisation doit protéger la santé."],
-    [`Cas pratique ${48} (${label}) : Tu constates une rupture d’asepsie. Quelle conduite adopter ?`, ["Arrêter le geste, corriger et reprendre proprement", "Continuer comme si de rien n’était", "Utiliser le même matériel", "Cacher la rupture"], 0, "Une rupture d’asepsie doit être corrigée immédiatement."],
-    [`Cas pratique ${49} (${label}) : Tu évalues les résultats d’une activité. Que dois-tu utiliser ?`, ["Des indicateurs et des données fiables", "Des rumeurs", "Des impressions seulement", "Aucune donnée"], 0, "L’évaluation repose sur des indicateurs."],
-    [`Cas pratique ${50} (${label}) : À la fin de la prise en charge, quelle action est nécessaire ?`, ["Donner les conseils, noter les soins et programmer le suivi", "Ne rien écrire", "Ne donner aucun conseil", "Interrompre le suivi"], 0, "La clôture correcte inclut conseil, traçabilité et suivi."],
+  const trueFalse = [
+    [`Vrai/Faux (${label}) : ${tp.action} est une action adaptée à ce sujet.`, ["Vrai", "Faux"], 0, "Cette action correspond au thème choisi."],
+    [`Vrai/Faux (${label}) : La traçabilité est inutile si le soin semble bien fait.`, ["Vrai", "Faux"], 1, "Tout soin doit être tracé."],
+    [`Vrai/Faux (${label}) : ${tp.danger} peut nécessiter une alerte ou une référence.`, ["Vrai", "Faux"], 0, "Un risque important impose une réaction rapide."],
+    [`Vrai/Faux (${label}) : L’éducation du patient ou de la famille peut prévenir les complications.`, ["Vrai", "Faux"], 0, "L’éducation améliore l’observance et le recours précoce aux soins."],
+    [`Vrai/Faux (${label}) : Il est acceptable d’inventer des constantes ou des données si le service est chargé.`, ["Vrai", "Faux"], 1, "Les données doivent être réelles et vérifiables."],
   ];
+  trueFalse.forEach((item) => questions.push(q(item[0], item[1], item[2], item[3])));
 
-  practicalCases.forEach((item) => questions.push(q(item[0], item[1], item[2], item[3])));
-
-  const trueFalseQuestions = [
-    [`Vrai/Faux 51 (${label}) : ${p.action} fait partie d’une conduite professionnelle correcte.`, ["Vrai", "Faux"], 0, "Cette action améliore la sécurité et la qualité des soins."],
-    [`Vrai/Faux 52 (${label}) : Il faut toujours vérifier l’identité du patient avant un soin.`, ["Vrai", "Faux"], 0, "L’identification évite les erreurs de patient et sécurise le soin."],
-    [`Vrai/Faux 53 (${label}) : La traçabilité des actes n’est pas nécessaire si le soin a été bien réalisé.`, ["Vrai", "Faux"], 1, "Tout soin doit être noté pour assurer le suivi et la responsabilité professionnelle."],
-    [`Vrai/Faux 54 (${label}) : ${p.risque} peut être prévenu par une bonne surveillance et des mesures adaptées.`, ["Vrai", "Faux"], 0, "La surveillance et la prévention réduisent les complications."],
-    [`Vrai/Faux 55 (${label}) : En cas de signe de danger, il faut attendre plusieurs jours avant d’agir.`, ["Vrai", "Faux"], 1, "Un signe de danger impose une réaction rapide et une référence si besoin."],
-    [`Vrai/Faux 56 (${label}) : L’éducation du patient ou de la famille aide à prévenir les complications.`, ["Vrai", "Faux"], 0, "L’éducation favorise l’observance, la prévention et le recours précoce aux soins."],
-    [`Vrai/Faux 57 (${label}) : ${p.outil} peut être utile dans la prise en charge.`, ["Vrai", "Faux"], 0, "Le matériel ou l’outil adapté facilite une prise en charge correcte."],
-    [`Vrai/Faux 58 (${label}) : L’infirmier peut changer une prescription médicale sans raison ni autorisation.`, ["Vrai", "Faux"], 1, "La prescription doit être respectée ; toute modification doit suivre les règles du service."],
-    [`Vrai/Faux 59 (${label}) : Une communication claire avec l’équipe améliore la continuité des soins.`, ["Vrai", "Faux"], 0, "Les transmissions fiables assurent une meilleure continuité des soins."],
-    [`Vrai/Faux 60 (${label}) : La confidentialité du patient doit être respectée.`, ["Vrai", "Faux"], 0, "Le secret professionnel protège les informations du patient."],
-    [`Vrai/Faux 61 (${label}) : Si une situation dépasse tes compétences, tu dois alerter un responsable.`, ["Vrai", "Faux"], 0, "Reconnaître ses limites protège le patient et le soignant."],
-    [`Vrai/Faux 62 (${label}) : L’hygiène des mains est inutile lorsque les mains semblent propres.`, ["Vrai", "Faux"], 1, "L’hygiène des mains reste indispensable avant et après les soins."],
-    [`Vrai/Faux 63 (${label}) : Un patient a le droit de recevoir des explications simples sur son soin.`, ["Vrai", "Faux"], 0, "L’information claire favorise le consentement et la confiance."],
-    [`Vrai/Faux 64 (${label}) : Il est acceptable d’inventer des constantes si le service est chargé.`, ["Vrai", "Faux"], 1, "Les constantes doivent être réelles et correctement notées."],
-    [`Vrai/Faux 65 (${label}) : Le suivi après la prise en charge permet de vérifier l’évolution du patient.`, ["Vrai", "Faux"], 0, "Le suivi permet d’évaluer les résultats et d’adapter la prise en charge."],
+  // Questions complémentaires propres au sujet pour atteindre 30 questions par sujet.
+  const complements = [
+    ["priorité", `Quelle priorité guide la prise en charge de « ${tp.axe} » ?`, ["Sécuriser le patient avant tout", "Choisir au hasard", "Suivre uniquement l’ordre d’arrivée", "Éviter les transmissions"], 0, "La sécurité et la gravité guident la priorité."],
+    ["communication", `Quelle communication est correcte dans ce sujet ?`, ["Écouter et vérifier la compréhension", "Humilier le patient", "Parler uniquement en termes complexes", "Refuser les questions"], 0, "La communication doit être respectueuse et claire."],
+    ["surveillance", `Quel élément de surveillance est utile ?`, ["Constantes ou signes cliniques adaptés", "Couleur préférée du patient", "Rumeurs du voisinage", "Données inventées"], 0, "La surveillance repose sur des données réelles."],
+    ["référence", `Quand faut-il référer ou alerter ?`, [p.urgence, "Toujours sans raison", "Jamais même en cas de danger", "Seulement après plusieurs semaines"], 0, "Les signes graves nécessitent une référence rapide."],
+    ["qualité", `Quel facteur améliore la qualité des soins ?`, ["Respect des protocoles", "Absence de planification", "Improvisation permanente", "Non-respect du secret"], 0, "Les protocoles et l’organisation améliorent la qualité."],
+    ["éthique", `Quel principe éthique est essentiel ?`, ["Confidentialité", "Diffusion des informations privées", "Moquerie du patient", "Refus systématique d’information"], 0, "La confidentialité protège le patient."],
+    ["prévention", `Quelle action préventive est adaptée à « ${tp.axe} » ?`, [`Informer sur ${tp.danger}`, "Encourager le retard de consultation", "Cacher les risques", "Supprimer le suivi"], 0, "La prévention passe par l’information sur les risques."],
+    ["continuité", `Comment assurer la continuité des soins ?`, ["Faire des transmissions claires", "Garder les informations pour soi", "Effacer les notes", "Changer la prescription sans autorisation"], 0, "Les transmissions assurent la continuité."],
+    ["matériel", `Avant l’activité liée à « ${tp.axe} », que faut-il vérifier ?`, [tp.outil, "Matériel périmé", "Absence d’hygiène", "Aucun document"], 0, "Le matériel doit être disponible et adapté."],
+    ["évaluation", `Après l’intervention, que faut-il évaluer ?`, ["L’évolution et l’efficacité des actions", "Uniquement l’avis d’un voisin", "Rien du tout", "Des données inventées"], 0, "L’évaluation permet d’améliorer la prise en charge."],
   ];
-
-  trueFalseQuestions.forEach((item) => questions.push(q(item[0], item[1], item[2], item[3])));
+  complements.forEach((item, index) => questions.push(q(`QCD ${index + 21} (${label}) : ${item[1]}`, item[2], item[3], item[4])));
 
   return questions;
 }
@@ -281,9 +263,6 @@ const QUIZ_QUESTIONS_BY_SUBJECT_AND_TOPIC = {};
 SUBJECTS_CONFIG.forEach((subject) => {
   QUIZ_QUESTIONS_BY_SUBJECT_AND_TOPIC[subject.subjectName] = {};
   subject.topics.forEach((topic) => {
-    QUIZ_QUESTIONS_BY_SUBJECT_AND_TOPIC[subject.subjectName][topic] = buildQuestionSet(
-      subject.subjectName,
-      topic
-    );
+    QUIZ_QUESTIONS_BY_SUBJECT_AND_TOPIC[subject.subjectName][topic] = buildQuestionSet(subject.subjectName, topic);
   });
 });
