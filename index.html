@@ -15,11 +15,29 @@
     <main class="container">
       <section class="card" id="auth-card">
         <h2>Espace etudiant</h2>
-        <p class="muted">Connexion uniquement avec code d'accès (liste definie dans le code).</p>
+        <p class="muted">Connexion uniquement avec code d’accès (liste definie dans le code).</p>
         <label for="login-name">Code d'accès</label>
         <input id="login-name" type="text" placeholder="Ex: 24A001" />
         <button id="login-btn">Se connecter</button>
+        <button id="recover-code-open-btn" type="button" class="secondary-btn">Recuperer Mon code d'Acces</button>
         <p id="auth-message" class="muted"></p>
+      </section>
+
+
+
+      <section class="card hidden" id="recover-code-card">
+        <div class="card-nav">
+          <button id="back-recover-code-btn" class="nav-btn">← Retour</button>
+        </div>
+        <h2>Recuperer mon code d'Acces</h2>
+        <p class="muted">Entre ton nom et prenoms ou ton numero de telephone pour retrouver ton code.</p>
+        <label for="recover-full-name">Nom et prenoms</label>
+        <input id="recover-full-name" type="text" placeholder="Ex: KOUAME JOELLE STEPHANIE" />
+        <label for="recover-phone">Numero de telephone</label>
+        <input id="recover-phone" type="tel" placeholder="Ex: 0700000000" />
+        <button id="recover-code-btn" type="button">Recuperer mon code</button>
+        <button id="recover-login-btn" type="button" class="secondary-btn hidden">Se connecter avec ce code</button>
+        <p id="recover-code-message" class="muted"></p>
       </section>
 
       <section class="card hidden" id="subjects-card">
@@ -27,13 +45,24 @@
           <button id="back-subjects-btn" class="nav-btn">← Retour</button>
         </div>
         <h2>Choix de la matiere</h2>
-        <p id="session-label" class="muted"></p>
-        <p id="user-name-display" class="user-name-display"></p>
-        <p class="muted">Choisis d'abord le mode QUIZ ou Préparation DE, puis sélectionne la matière et le sujet.</p>
+        <p class="muted">
+          Ordre de sélection :
+          <br>1. Quiz ou Préparation DE
+          <br>2. Matière
+          <br>3. Sujet
+          <br>4. Mode d'Affichage
+        </p>
+        <p class="muted">Choisis d'abord le mode QUIZ ou Préparation DE, puis sélectionne la matière, le sujet et le mode d'affichage.</p>
         <label for="subject-choice">Matiere</label>
-        <select id="subject-choice"></select>
+        <select id="subject-choice" disabled></select>
         <label for="topic-choice">Sujet</label>
-        <select id="topic-choice"></select>
+        <select id="topic-choice" disabled></select>
+        <label for="display-mode-choice">Mode d'Affichage du sujet</label>
+        <select id="display-mode-choice" disabled>
+          <option value="">Choisir un Mode d'Affichage pour commencer</option>
+          <option value="all">Toutes les questions</option>
+          <option value="one">Question par question</option>
+        </select>
         <p id="subject-message" class="muted"></p>
         <p id="selected-question-count" class="muted"></p>
         <div class="button-group">
@@ -41,6 +70,28 @@
           <button id="general-quiz-btn" type="button" class="small-btn">QUIZ</button>
           <button id="preparation-de-btn" type="button" class="small-btn">Préparation DE</button>
         </div>
+      </section>
+
+      <section class="card hidden" id="start-card">
+        <div class="card-nav">
+          <button id="back-camera-btn" class="nav-btn">← Retour</button>
+        </div>
+        <h2>Etape photo avant quiz</h2>
+        <p id="session-label" class="muted"></p>
+        <p id="user-name-display" class="user-name-display"></p>
+        <p id="camera-warning" class="camera-warning">
+          Active la camera avant de commencer le quiz.
+        </p>
+
+        <div class="camera-actions">
+          <button id="enable-camera-btn" type="button">Activer la camera</button>
+          <button id="take-photo-btn" class="secondary-btn" type="button">Prendre une photo</button>
+        </div>
+        <video id="camera-preview" class="camera-preview hidden" autoplay playsinline></video>
+        <canvas id="camera-canvas" class="hidden"></canvas>
+        <img id="photo-preview" class="photo-preview hidden" alt="Photo etudiant" />
+        <p id="camera-message" class="muted"></p>
+
         <button id="logout-btn" class="secondary-btn">Se deconnecter</button>
       </section>
 
@@ -55,6 +106,10 @@
         </div>
         <h2 id="question-text"></h2>
         <div id="answers" class="answers"></div>
+        <div id="single-question-nav" class="button-group hidden">
+          <button id="prev-question-btn" type="button" class="secondary-btn small-btn">← Précédent</button>
+          <button id="next-question-btn" type="button" class="small-btn">Suivant →</button>
+        </div>
         <button id="submit-answers-btn">Valider mes reponses</button>
       </section>
 
@@ -89,6 +144,7 @@
     </main>
 
     <script src="code.js"></script>
+    <script src="liste-acces.js"></script>
     <script src="quiz-subjects.js"></script>
     <script src="preparation-de-subjects.js"></script>
     <script src="quiz-data.js"></script>

@@ -1,58 +1,72 @@
 const SUBJECTS_TO_DISPLAY = [
-  "Pédiatrie",
-  "Santé Publique",
-  "Médecine",
-  "Chirurgie"
+  "Imagerie médicale",
+  "Documents normatifs",
+  "Gestion des catastrophes",
+  "Gouvernance et Organisation du Système de Santé Communautaire",
+  "Organisation d’une séance de Vaccination / Sécurité des injections",
+  "Santé sexuelle et reproductive des adolescents et des jeunes / Planification Familiale / IST / VIH-SIDA",
+  "Violences Basées sur Genre / Encadrement (Egalité - Equité)",
+  "Hygiène menstruelle",
+  "Prise en charge des substances psychoactives",
+  "Oncologie",
+  "Neuropsychiatrie / Psychiatrie",
+  "Endocrinologie",
+  "Hépato-gastro-entérologie",
+  "Cardiologie",
+  "Dermatologie",
+  "Néphrologie",
+  "Odonto-Stomatologie",
+  "Ophtalmologie",
+  "Neurochirurgie",
+  "ORL",
+  "Pédiatrie (PCIMNE)",
+  "Gériatrie",
+  "Pathologies gynécologiques III",
+  "Pathologies obstétricales III",
+  "Soins obstétricaux et néonataux d’urgence de base (SONUB)",
+  "Soins obstétricaux et néonataux d’urgence complets (SONUC)",
+  "Soins infirmiers obstétricaux et néonataux",
+  "Consultation Postnatale (CPoN)",
+  "Ventouse obstétricale",
+  "Aspiration Manuelle Intra-Utérine (AMIU) / Soins Post Avortement",
+  "Surveillances thérapeutiques",
+  "Élaboration d’un projet de soins infirmiers",
+  "Mise en œuvre et évaluation d’un projet de soins infirmiers",
+  "Soins infirmiers spécialisés en médecine",
+  "Soins infirmiers spécialisés en chirurgie",
+  "Soins palliatifs",
+  "Présentation de cas cliniques",
+  "Droit administratif / Responsabilité médicale",
+  "Sécurité sociale",
+  "Fonction publique",
+  "Rédaction administrative",
+  "Gestion Hospitalière",
+  "Entrepreneuriat / Gestion de la qualité",
+  "Supervision / Suivi – Evaluation",
+  "Rédaction du document final (Mémoire)",
+  "Processus de mise en stage",
+  "Stage en soins infirmiers et obstétricaux + Rapport",
+  "Stage communautaire + Rapport",
 ];
 
-const SUBJECTS_CONFIG = [
-  {
-    "subjectName": "Pédiatrie",
-    "topics": [
-      "DEB Pédiatrie 2024 Série 1",
-      "DEB Pédiatrie 2024 Série 2",
-      "DEB Pédiatrie 2024 Série 3",
-      "DEB Pédiatrie 2024 Série 4",
-      "DEB Pédiatrie 2024 Série 5",
-      "DEB Pédiatrie 2024 Série 6",
-      "DEB Pédiatrie 2025 Série 1",
-      "DEB Pédiatrie 2025 Série 2"
-    ]
-  },
-  {
-    "subjectName": "Santé Publique",
-    "topics": [
-      "DEB Santé Publique 2024 Série 1",
-      "DEB Santé Publique 2024 Série 2",
-      "DEB Santé Publique 2024 Série 3",
-      "DEB Santé Publique 2024 Série 4",
-      "DEB Santé Publique 2024 Série 5",
-      "DEB Santé Publique 2025 Série 1",
-      "DEB Santé Publique 2025 Série 2"
-    ]
-  },
-  {
-    "subjectName": "Médecine",
-    "topics": [
-      "DEB Médecine 2024 Série 1",
-      "DEB Médecine 2024 Série 2",
-      "DEB Médecine 2024 Série 3",
-      "DEB Médecine 2024 Série 4",
-      "DEB Médecine 2024 Série 5",
-      "DEB Médecine 2025 Série 1",
-      "DEB Médecine 2025 Série 2"
-    ]
-  },
-  {
-    "subjectName": "Chirurgie",
-    "topics": [
-      "DEB Chirurgie 2024 Série 1",
-      "DEB Chirurgie 2024 Série 2",
-      "DEB Chirurgie 2024 Série 3",
-      "DEB Chirurgie 2024 Série 4",
-      "DEB Chirurgie 2024 Série 5",
-      "DEB Chirurgie 2025 Série 1",
-      "DEB Chirurgie 2025 Série 2"
-    ]
-  }
-];
+const SUBJECTS_CONFIG = SUBJECTS_TO_DISPLAY.map((subjectName) => ({
+  subjectName,
+  topics: [
+    `Sujet 1 - ${subjectName}`,
+    `Sujet 2 - ${subjectName}`,
+    `Sujet 3 - ${subjectName}`,
+    `Sujet 4 - ${subjectName}`,
+    `Sujet 5 - ${subjectName}`,
+  ],
+}));
+
+// ZONE A MODIFIER:
+// Tu peux renommer les 5 sujets de chaque matiere ici.
+// Exemple:
+// SUBJECTS_CONFIG[0].topics = [
+//   "Introduction a l'imagerie",
+//   "Radiologie conventionnelle",
+//   "Scanner",
+//   "IRM",
+//   "Echographie",
+// ];

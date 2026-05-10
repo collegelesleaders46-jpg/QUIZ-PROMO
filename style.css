@@ -273,3 +273,28 @@ select {
   font-weight: 600;
   font-size: 15px;
 }
+
+
+#recover-code-message {
+  margin-top: 12px;
+  font-weight: 700;
+}
+
+
+.question-block {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.answer-choice {
+  display: block;
+  margin-top: 10px;
+  font-weight: 400;
+}
+
+#single-question-nav {
+  justify-content: space-between;
+}
+
